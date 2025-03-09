@@ -18,6 +18,10 @@
             --card-bg: white;
             --text-color: #212529;
             --btn-text: #212529;
+            --tooltip-bg: rgba(0, 0, 0, 0.8);
+            --tooltip-text: white;
+            --footer-bg: rgba(0, 0, 0, 0.05);
+            --footer-text: #6c757d;
         }
 
         [data-theme="dark"] {
@@ -29,6 +33,10 @@
             --light: #2c2c2c;
             --btn-text: #e9ecef;
             --gray: #adb5bd;
+            --tooltip-bg: rgba(255, 255, 255, 0.9);
+            --tooltip-text: #121212;
+            --footer-bg: rgba(255, 255, 255, 0.05);
+            --footer-text: #adb5bd;
         }
 
         * {
@@ -51,13 +59,15 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             width: 100%;
             background-color: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
@@ -115,6 +125,52 @@
             font-weight: 500;
             color: var(--text-color);
             margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-text {
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            cursor: help;
+            position: relative;
+            color: var(--primary);
+        }
+
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--tooltip-bg);
+            color: var(--tooltip-text);
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            width: 280px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -8px;
+            border-width:.8px;
+            border-style: solid;
+            border-color: var(--tooltip-bg) transparent transparent transparent;
+        }
+
+        .tooltip-text:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .options {
@@ -212,13 +268,90 @@
             transition: width 0.3s ease;
         }
 
+        .footer {
+            padding: 20px 30px;
+            background-color: var(--footer-bg);
+            color: var(--footer-text);
+            font-size: 14px;
+            text-align: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: auto;
+        }
+
+        .disclaimer {
+            max-width: 800px;
+            margin: 0 auto 15px;
+            line-height: 1.6;
+        }
+
+        .made-with-love {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .heart {
+            color: #ff6b6b;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .visitor-count {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+                margin-right: 40px;
+            }
+            
+            .theme-toggle {
+                top: 15px;
+                right: 15px;
+                width: 35px;
+                height: 35px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .question {
+                font-size: 18px;
+            }
+            
+            .tooltip {
+                width: 250px;
+            }
+        }
+
         @media (max-width: 576px) {
             .container {
                 border-radius: 8px;
             }
             
             .header {
-                padding: 20px;
+                padding: 20px 15px;
             }
             
             .header h1 {
@@ -226,11 +359,11 @@
             }
             
             .content {
-                padding: 20px;
+                padding: 15px;
             }
             
             .question {
-                font-size: 18px;
+                font-size: 16px;
             }
             
             .options {
@@ -240,6 +373,13 @@
             
             .btn {
                 width: 100%;
+                padding: 12px 15px;
+            }
+            
+            .tooltip {
+                width: 220px;
+                font-size: 12px;
+                padding: 10px;
             }
         }
 
@@ -284,6 +424,18 @@
                 <button class="btn btn-restart" onclick="restartQuiz()">Start Over</button>
             </div>
         </div>
+
+        <div class="footer">
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This website is a tool to assist in determining whether a CDL is required but should not be used as the sole source of information. Federal and state laws constantly change. A local law enforcement officer should be consulted to determine if a CDL is needed for your specific situation.
+            </div>
+            <div class="made-with-love">
+                Made in Louisiana <span class="heart">❤️</span>
+            </div>
+            <div class="visitor-count" id="visitor-count">
+                Visitor Count: <span id="count">1</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -308,7 +460,14 @@
             }
         });
 
-        // Define all questions and their flow based on the new logic
+        // Define tooltips for GVW/GVWR terms
+        const tooltips = {
+            "GVW": "Gross Vehicle Weight (GVW) is the total weight of a vehicle including cargo, fuel, driver, passengers, and any additional equipment. It represents the actual weight of the vehicle when it's on the road.",
+            "GVWR": "Gross Vehicle Weight Rating (GVWR) is the maximum allowable weight of a vehicle as specified by the manufacturer. This includes the vehicle itself, passengers, cargo, and fuel. It represents the maximum safe operating weight of the vehicle.",
+            "GCWR": "Gross Combination Weight Rating (GCWR) is the maximum allowable weight of a combination vehicle (truck and trailer) including the vehicle, trailer, cargo, passengers, fuel, and all equipment. It's specified by the manufacturer and represents the maximum safe operating weight of the entire combination."
+        };
+
+        // Define all questions and their flow with improved grammar
         const questions = {
             q1: {
                 text: "Is this a Combination Vehicle?",
@@ -317,31 +476,31 @@
                 no: "q3"
             },
             q2: {
-                text: "Does the trailer have a GVW/GVWR of 10,001 lbs. or more?",
+                text: "Does the trailer have a <span class='tooltip-text'>GVW/GVWR<span class='tooltip'>" + tooltips.GVWR + "</span></span> of 10,001 lbs. or more?",
                 progress: 40,
                 yes: "q4",
                 no: "q5"
             },
             q3: {
-                text: "Does the single vehicle have a GVW/GVWR of 26,001 lbs. or more?",
+                text: "Does the single vehicle have a <span class='tooltip-text'>GVW/GVWR<span class='tooltip'>" + tooltips.GVWR + "</span></span> of 26,001 lbs. or more?",
                 progress: 40,
                 yes: "class-b",
                 no: "q6"
             },
             q4: {
-                text: "Is the GCWR 26,001 lbs. or more?",
+                text: "Is the <span class='tooltip-text'>GCWR<span class='tooltip'>" + tooltips.GCWR + "</span></span> 26,001 lbs. or more?",
                 progress: 60,
                 yes: "class-a",
                 no: "q7"
             },
             q5: {
-                text: "Does the power unit have a GVW/GVWR of 26,001 lbs. or more?",
+                text: "Does the power unit have a <span class='tooltip-text'>GVW/GVWR<span class='tooltip'>" + tooltips.GVWR + "</span></span> of 26,001 lbs. or more?",
                 progress: 60,
                 yes: "class-b",
                 no: "q7"
             },
             q6: {
-                text: "Is the vehicle Designed to Transport 16 or more people including the driver?",
+                text: "Is the vehicle designed to transport 16 or more people including the driver?",
                 progress: 60,
                 yes: "class-c",
                 no: "q8"
@@ -353,7 +512,7 @@
                 no: "q8"
             },
             q8: {
-                text: "Does the vehicle transport Placardable amounts of Hazardous Materials?",
+                text: "Does the vehicle transport placardable amounts of hazardous materials?",
                 progress: 80,
                 yes: "class-c",
                 no: "no-cdl"
@@ -391,8 +550,20 @@
         let currentQuestion = "q1";
 
         // Set initial question
-        document.getElementById("question").textContent = questions[currentQuestion].text;
+        document.getElementById("question").innerHTML = questions[currentQuestion].text;
         document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
+
+        // Visitor count functionality 
+        const countDisplay = document.getElementById("count");
+        const visitorCount = localStorage.getItem("visitorCount") || 0;
+        
+        // Increment count if this is a new session
+        if (!sessionStorage.getItem("counted")) {
+            localStorage.setItem("visitorCount", parseInt(visitorCount) + 1);
+            sessionStorage.setItem("counted", "true");
+        }
+        
+        countDisplay.textContent = localStorage.getItem("visitorCount") || 1;
 
         function handleAnswer(answer) {
             const questionData = questions[currentQuestion];
@@ -419,8 +590,8 @@
             // Update progress bar
             document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
             
-            // Update question text
-            document.getElementById("question").textContent = questions[currentQuestion].text;
+            // Update question text with HTML for tooltips
+            document.getElementById("question").innerHTML = questions[currentQuestion].text;
         }
 
         function showResult(resultKey) {
@@ -452,7 +623,7 @@
             document.getElementById("result-area").style.display = "none";
             
             // Reset question text and progress
-            document.getElementById("question").textContent = questions[currentQuestion].text;
+            document.getElementById("question").innerHTML = questions[currentQuestion].text;
             document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
         }
     </script>

@@ -1,27 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDL Flowchart</title>
+    <title>CDL Requirements Calculator</title>
+    <style>
+        :root {
+            --primary: #3a86ff;
+            --secondary: #8338ec;
+            --success: #38b000;
+            --warning: #ffbe0b;
+            --danger: #ff006e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --background: #f5f7fa;
+            --card-bg: white;
+            --text-color: #212529;
+            --btn-text: #212529;
+        }
+
+        [data-theme="dark"] {
+            --primary: #4d8dff;
+            --secondary: #9355f1;
+            --background: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e9ecef;
+            --light: #2c2c2c;
+            --btn-text: #e9ecef;
+            --gray: #adb5bd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 16px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .question-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .question {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-yes {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-no {
+            background-color: var(--light);
+            color: var(--btn-text);
+            border: 1px solid #ddd;
+        }
+
+        .btn-restart {
+            background-color: var(--secondary);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .result {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .result-description {
+            color: var(--gray);
+            margin-bottom: 30px;
+        }
+
+        .result-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .class-a {
+            color: #ff6b6b;
+        }
+
+        .class-b {
+            color: #51cf66;
+        }
+
+        .class-c {
+            color: #339af0;
+        }
+
+        .no-cdl {
+            color: #868e96;
+        }
+
+        .progress-container {
+            padding: 0 30px 30px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .question {
+                font-size: 18px;
+            }
+            
+            .options {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-    
-    <div class="quiz-container">
-        <h1>CDL Flowchart</h1>
-        <h2 class="question">Is this a Combination Vehicle?</h2>
-        <div class="options">
-            <button class="option">Yes</button>
-            <button class="option">No</button>
+    <div class="container">
+        <div class="header">
+            <h1>CDL Requirements Calculator</h1>
+            <p>Find out what type of Commercial Driver's License you need</p>
+            <button class="theme-toggle" id="theme-toggle">🌓</button>
         </div>
-        <button class="next-btn">Next</button>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="question-area" class="question-container fade-in">
+                <h2 class="question" id="question">Is this a Combination Vehicle?</h2>
+                <div class="options">
+                    <button class="btn btn-yes" onclick="handleAnswer('yes')">Yes</button>
+                    <button class="btn btn-no" onclick="handleAnswer('no')">No</button>
+                </div>
+            </div>
+            
+            <div id="result-area" class="result-container fade-in">
+                <div class="result-icon" id="result-icon">🚚</div>
+                <h2 class="result" id="result">No CDL Required</h2>
+                <p class="result-description" id="result-description">Based on your answers, you don't need a Commercial Driver's License for this vehicle.</p>
+                <button class="btn btn-restart" onclick="restartQuiz()">Start Over</button>
+            </div>
+        </div>
     </div>
-<!--   CDL RESULTS
-    <div class="quiz-result">
-        <h2>You <span class="important">DO NOT</span> need a Commercial Driver's License!</h2>
-    </div>
--->     
-    <script src="main.js"></script>
+
+    <script>
+        // Dark mode detection and toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // Check for system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️';
+        }
+        
+        // Toggle theme
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.textContent = '🌓';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        });
+
+        // Define all questions and their flow based on the new logic
+        const questions = {
+            q1: {
+                text: "Is this a Combination Vehicle?",
+                progress: 20,
+                yes: "q2",
+                no: "q3"
+            },
+            q2: {
+                text: "Does the trailer have a GVW/GVWR of 10,001 lbs. or more?",
+                progress: 40,
+                yes: "q4",
+                no: "q5"
+            },
+            q3: {
+                text: "Does the single vehicle have a GVW/GVWR of 26,001 lbs. or more?",
+                progress: 40,
+                yes: "class-b",
+                no: "q6"
+            },
+            q4: {
+                text: "Is the GCWR 26,001 lbs. or more?",
+                progress: 60,
+                yes: "class-a",
+                no: "q7"
+            },
+            q5: {
+                text: "Does the power unit have a GVW/GVWR of 26,001 lbs. or more?",
+                progress: 60,
+                yes: "class-b",
+                no: "q7"
+            },
+            q6: {
+                text: "Is the vehicle Designed to Transport 16 or more people including the driver?",
+                progress: 60,
+                yes: "class-c",
+                no: "q8"
+            },
+            q7: {
+                text: "Is the vehicle designed to transport 16 or more people including the driver?",
+                progress: 80,
+                yes: "class-c",
+                no: "q8"
+            },
+            q8: {
+                text: "Does the vehicle transport Placardable amounts of Hazardous Materials?",
+                progress: 80,
+                yes: "class-c",
+                no: "no-cdl"
+            }
+        };
+
+        // Define results
+        const results = {
+            "class-a": {
+                title: "Class A CDL Required",
+                description: "You need a Class A Commercial Driver's License for this vehicle combination.",
+                icon: "🚛",
+                class: "class-a"
+            },
+            "class-b": {
+                title: "Class B CDL Needed",
+                description: "You need a Class B Commercial Driver's License for this vehicle.",
+                icon: "🚌",
+                class: "class-b"
+            },
+            "class-c": {
+                title: "Class C CDL Needed",
+                description: "You need a Class C Commercial Driver's License for this vehicle.",
+                icon: "🚐",
+                class: "class-c"
+            },
+            "no-cdl": {
+                title: "No CDL Required",
+                description: "Based on your answers, you don't need a Commercial Driver's License for this vehicle.",
+                icon: "🚗",
+                class: "no-cdl"
+            }
+        };
+
+        let currentQuestion = "q1";
+
+        // Set initial question
+        document.getElementById("question").textContent = questions[currentQuestion].text;
+        document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
+
+        function handleAnswer(answer) {
+            const questionData = questions[currentQuestion];
+            const nextQuestion = questionData[answer];
+
+            // If next is a result
+            if (nextQuestion.includes("class") || nextQuestion === "no-cdl") {
+                showResult(nextQuestion);
+                return;
+            }
+
+            // Otherwise go to next question
+            currentQuestion = nextQuestion;
+            
+            // Animation effect
+            const questionArea = document.getElementById("question-area");
+            questionArea.classList.remove("fade-in");
+            
+            // Force reflow
+            void questionArea.offsetWidth;
+            
+            questionArea.classList.add("fade-in");
+            
+            // Update progress bar
+            document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
+            
+            // Update question text
+            document.getElementById("question").textContent = questions[currentQuestion].text;
+        }
+
+        function showResult(resultKey) {
+            const result = results[resultKey];
+            
+            // Hide question area and show result area
+            document.getElementById("question-area").style.display = "none";
+            
+            const resultArea = document.getElementById("result-area");
+            resultArea.style.display = "block";
+            
+            // Set result information
+            document.getElementById("result").textContent = result.title;
+            document.getElementById("result").className = `result ${result.class}`;
+            document.getElementById("result-description").textContent = result.description;
+            document.getElementById("result-icon").textContent = result.icon;
+            document.getElementById("result-icon").className = `result-icon ${result.class}`;
+            
+            // Set progress to 100%
+            document.getElementById("progress").style.width = "100%";
+        }
+
+        function restartQuiz() {
+            // Reset to first question
+            currentQuestion = "q1";
+            
+            // Show question area and hide result area
+            document.getElementById("question-area").style.display = "block";
+            document.getElementById("result-area").style.display = "none";
+            
+            // Reset question text and progress
+            document.getElementById("question").textContent = questions[currentQuestion].text;
+            document.getElementById("progress").style.width = questions[currentQuestion].progress + "%";
+        }
+    </script>
 </body>
 </html>
